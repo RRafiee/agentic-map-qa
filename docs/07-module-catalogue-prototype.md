@@ -125,6 +125,37 @@ The public repository must not contain:
 Testing documented in the public repository will use synthetic module
 codes, titles and identities.
 
+## Prototype validation results
+
+The catalogue was tested within the institutional Microsoft 365
+environment using representative operational module records.
+
+The following cases were completed successfully:
+
+- a semester-based module with one module owner;
+- a module with two co-owners;
+- a 40-CATS module delivered across the full academic year;
+- selection of controlled Programme and Delivery Period values;
+- automatic default values for Active Module and MAP Required.
+
+Additional configuration tests confirmed that:
+
+- required fields prevent incomplete records from being saved;
+- duplicate module codes are rejected;
+- the default Microsoft Lists Title field can be hidden from the standard
+  view and item-entry form;
+- multiple people can be selected in the Default Module Owner field.
+
+No staff names, email addresses, private links or identifiable module
+records are included in this public documentation.
+
+### Identified limitation
+
+The multiple-owner field records co-ownership but does not represent
+semester-specific responsibility. A later ownership-assignment List may be
+required to record which owner is responsible for each teaching period or
+assessment component.
+
 ## 9. Next steps
 
 1. Add three synthetic catalogue records.
