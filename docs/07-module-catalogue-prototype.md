@@ -37,6 +37,7 @@ together.
 | Delivery Period | Choice | Yes | Semester 1, Semester 2 or Full Year |
 | Active Module | Yes/No | Yes | Default value: Yes |
 | MAP Required | Yes/No | Yes | Default value: Yes |
+| CATS | Number | Yes | Whole-number value restricted to 10, 20 or 40 |
 
 ## 4. Controlled choices
 
@@ -111,6 +112,8 @@ The prototype should verify that:
 - multiple module owners can be selected;
 - Active Module defaults to Yes;
 - MAP Required defaults to Yes.
+- the CATS field accepts the controlled numeric values 10, 20 and 40;
+- unsupported CATS values are rejected through column validation.
 
 ## 8. Data protection
 
