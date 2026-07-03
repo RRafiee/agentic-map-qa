@@ -37,7 +37,7 @@ together.
 | Delivery Period | Choice | Yes | Semester 1, Semester 2 or Full Year |
 | Active Module | Yes/No | Yes | Default value: Yes |
 | MAP Required | Yes/No | Yes | Default value: Yes |
-| CATS | Number | Yes | Whole-number value restricted to 10, 20 or 40 |
+| CATS | Number | Yes | Whole-number value restricted to 10, 20, or 40 |
 
 ## 4. Controlled choices
 
