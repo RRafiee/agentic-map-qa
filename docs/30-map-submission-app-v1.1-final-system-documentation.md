@@ -1,5 +1,4 @@
 # MAP Submission App Version 1.1 – Final System Documentation
-# MAP Submission App Version 1.1 – Final System Documentation
 
 ## 1. Purpose and Scope
 
