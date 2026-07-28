@@ -408,3 +408,27 @@ Further changes should be limited to:
 - issues that prevent submission.
 
 Non-critical suggestions should be recorded for a future version rather than added immediately to the production baseline.
+
+# MAP Submission App Version 1.1 – Final Validation Updates
+
+## Description
+
+Version 1.1 includes final validation improvements identified during production testing of the Module Assessment Planning (MAP) Submission App.
+
+The maximum permitted number of summative assessments was increased to **15** in the SharePoint Module Plans list. The **Next: Assessment Details** button was also updated to validate the value entered in `DataCardValue9` before applying the general module-plan form validation.
+
+The app now accepts only values between **1 and 15** for the number of summative assessments. When a user enters a value outside this range, the app displays the following specific warning:
+
+```text
+Please enter a number of summative assessments between 1 and 15.
+```
+
+This prevents the previous misleading message—stating that required module-plan fields were incomplete—from being shown when the actual issue was an invalid number of assessments.
+
+The assessment date validation was also strengthened at the review stage. Users can proceed only when the assessment dates follow this sequence:
+
+```text
+Assessment Release Date ≤ Submission / Due Date ≤ Feedback Release Date
+```
+
+Equality between the Submission / Due Date and Feedback Release Date is permitted to support online tests where feedback may be released immediately.
