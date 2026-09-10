@@ -24,3 +24,10 @@ The mapping now follows a reusable Mapping ID convention that does not include t
 BSC-CS_L3_CSC3067_OPTIONAL
 MENG-CS_L4_CSC4006_CORE
 BSC-DS_L3_CSC3066_CORE
+
+
+## Operational Exceptions
+
+Some deconfliction issues may arise outside the standard programme-stage mapping, for example HLA attendance constraints or students carrying modules across stages. These are not currently represented as standard mapping rules in the MAP Agentic QA system.
+
+For the current version, such cases will be handled through APD and module-owner review rather than automated rule expansion. The system will continue to focus on normal programme-stage cohort deconfliction, with exceptional cases reviewed manually where required.
