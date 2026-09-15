@@ -2,6 +2,20 @@
 
 ## A Verifier-Grounded Multi-Agent AI System for Policy-Constrained Assessment Planning
 
+<p align="center">
+  <img
+    src="docs/assets/map_qa_multi_agent_architecture.png"
+    alt="Architecture diagram of the MAP-QA verifier-grounded multi-agent system showing data sources, deterministic agents, validation and governance checks, APD human-in-the-loop review, optional Gemini/RAG advisory layer, and final QA/calendar outputs"
+    width="900">
+</p>
+
+<p align="center">
+  <em>
+    Figure 1. MAP-QA multi-agent architecture. Structured Power Apps and SharePoint MAP records are processed through deterministic readiness, cohort-mapping, conflict-detection, deconfliction and validation agents before APD-led human review. The optional Gemini/RAG layer is advisory only and supports explanation, critique and communication drafting without autonomous calculation, approval, publication or email sending.
+  </em>
+</p>
+
+
 This repository contains the working implementation of **Agentic MAP-QA**, a verifier-grounded **multi-agent system** for Module Assessment Planning (MAP) quality assurance, assessment deconfliction, and calendar-readiness checking.
 
 The system supports the 2026/27 MAP process in the School of Electronics, Electrical Engineering and Computer Science (EEECS), Queen’s University Belfast. It combines deterministic data validation, programme-cohort mapping, calendar-rule checks, APD review packs, and human-in-the-loop academic decision-making.
@@ -180,3 +194,4 @@ As of 15 September 2026:
 ## Research framing
 
 Agentic MAP-QA demonstrates a practical, policy-constrained, verifier-grounded multi-agent system for academic quality assurance. It is designed to support transparent decision-making rather than replace human academic judgement.
+
