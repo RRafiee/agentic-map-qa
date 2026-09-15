@@ -216,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+# Local MAP data exports - do not commit institutional data
+data/raw/
+data/processed/
+outputs/
+*.xlsx
+*.csv

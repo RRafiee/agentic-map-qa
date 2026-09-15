@@ -1,0 +1,11 @@
+academic_year: "2026/27"
+
+input_folder: "data/raw/2026_27_snapshot_03Sep"
+processed_folder: "data/processed/2026_27_readiness_03Sep"
+output_folder: "outputs/2026_27_readiness_03Sep"
+
+files:
+  module_catalogue: "module_catalogue_raw.csv"
+  module_plans: "module_plans_raw.csv"
+  assessments: "assessments_raw.csv"
+  programme_module_mapping: "programme_module_mapping_raw.csv"

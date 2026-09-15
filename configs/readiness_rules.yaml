@@ -1,0 +1,47 @@
+academic_year: "2026/27"
+
+rules:
+  duplicate_module_plan:
+    id: "DR-001"
+    description: "One MAP plan should exist per module."
+    severity: "Critical"
+
+  module_exists_in_catalogue:
+    id: "DR-002"
+    description: "Each MAP plan and assessment should link to a valid module in the Module Catalogue."
+    severity: "Critical"
+
+  assessment_type_present:
+    id: "DR-003"
+    description: "Assessment type must be populated for each summative assessment."
+    severity: "Critical"
+
+  assessment_weight_present:
+    id: "DR-004"
+    description: "Assessment weighting must be populated for each summative assessment."
+    severity: "Critical"
+
+  weighting_total_100:
+    id: "DR-005"
+    description: "Assessment weightings should total 100%, except approved 0-CATS/pass-fail exceptions."
+    severity: "Critical"
+
+  release_before_submission:
+    id: "DR-006"
+    description: "Predicted release date must be on or before predicted submission date."
+    severity: "Critical"
+
+  submission_before_feedback:
+    id: "DR-007"
+    description: "Predicted feedback date must be on or after predicted submission date."
+    severity: "Critical"
+
+  feedback_date_present:
+    id: "DR-008"
+    description: "Predicted feedback date should be present for non-formal-exam summative assessments."
+    severity: "Critical"
+
+  calendar_inclusion_clear:
+    id: "DR-009"
+    description: "Calendar inclusion flag should be clear for each assessment."
+    severity: "Warning"
