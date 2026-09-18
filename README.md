@@ -1,6 +1,3 @@
-﻿# Agentic MAP-QA
-
-## A Verifier-Grounded Multi-Agent AI System for Policy-Constrained Assessment Planning
 
 <p align="center">
   <img
@@ -15,183 +12,347 @@
   </em>
 </p>
 
+A Verifier-Grounded Agentic AI System for Policy-Constrained Planning
+Agentic MAP-QA
 
-This repository contains the working implementation of **Agentic MAP-QA**, a verifier-grounded **multi-agent system** for Module Assessment Planning (MAP) quality assurance, assessment deconfliction, and calendar-readiness checking.
+A Verifier-Grounded Multi-Agent AI System for Policy-Constrained Assessment Planning
 
-The system supports the 2026/27 MAP process in the School of Electronics, Electrical Engineering and Computer Science (EEECS), Queen’s University Belfast. It combines deterministic data validation, programme-cohort mapping, calendar-rule checks, APD review packs, and human-in-the-loop academic decision-making.
+This repository contains the working implementation of the MAP Agentic QA system developed for the School of Electronics, Electrical Engineering and Computer Science (EEECS), Queen’s University Belfast.
 
-The system does **not** automatically approve, publish, or change assessment dates. It produces evidence-based outputs for APDs, module owners, and QA review.
+The system supports the 2026/27 Module Assessment Planning (MAP) process through a multi-agent workflow that combines deterministic data validation, programme-cohort mapping, assessment deconfliction, calendar-rule checking, validation and APD-ready review outputs.
 
----
+The system is designed as a human-in-the-loop, verifier-grounded multi-agent QA workflow. It does not approve, publish or change assessment dates automatically. Instead, each agent performs a clearly bounded QA task, produces traceable evidence, and supports APDs and module owners in making the final academic decisions.
 
-## Core idea
+Purpose
 
-Agentic MAP-QA is designed as a **multi-agent QA workflow** rather than a single script. Each agent performs a clearly bounded role and produces auditable intermediate outputs.
+The MAP Agentic QA system helps identify and manage assessment-planning issues before assessment dates are released to students. It focuses on:
 
-The approach is:
+data-readiness checks across MAP submissions;
 
-1. Validate raw MAP data.
-2. Map assessments to affected programme-stage cohorts.
-3. Detect cohort-level assessment pressure.
-4. Apply calendar and policy constraints.
-5. Generate APD-specific review evidence.
-6. Validate generated outputs.
-7. Support final human APD/module-owner decisions.
+assessment date consistency and feedback timing checks;
 
----
+programme-stage cohort exposure mapping;
 
-## Multi-agent system architecture
+same-day and near-date assessment pressure detection;
 
-| Agent / Component | Role |
-|---|---|
-| Data Readiness Agent | Checks raw MAP exports for missing fields, date issues, feedback timing, assessment counts, and approved exceptions. |
-| Assessment Board Agent | Creates assessment-board style views by submission date, same-day pressure, near-date pressure, and feedback warnings. |
-| Programme-Cohort Mapping Agent | Links modules and assessments to programme-stage cohorts using the MAP programme-module mapping list. |
-| Deconfliction Case Builder Agent | Creates APD-ready date deconfliction cases, calendar warnings, feedback warnings, unmapped cases, and assessment-only/manual review cases. |
-| Validation Agent | Checks APD-facing outputs for UK date format, blocked dates, release-date safety, and stale APD routing files. |
-| Human APD / Module Owner Review | Final human-in-the-loop stage where APDs liaise with module owners and record agreed actions. |
+EEECS calendar-rule checks;
 
-This design keeps the workflow **verifier-grounded**: each step is traceable, deterministic, and reviewable.
+APD-specific deconfliction review packs;
 
----
+validation of suggested alternative dates;
 
-## Current workflow
+preparation for final EEECS Assessment Calendar release;
 
-```text
+a staged multi-agent workflow with clear hand-off points between agents.
+
+Multi-agent system architecture
+
+The project is organised as a multi-agent system, where each agent has a bounded responsibility and passes verified outputs to the next stage of the workflow. The agents are not autonomous decision-makers; they are deterministic QA components that support transparent, auditable, human-approved assessment planning.
+
+Agent / component
+
+Role in the multi-agent workflow
+
+Output produced
+
+Data Readiness Agent
+
+Validates raw MAP exports, checks required fields, normalises dates, and identifies readiness issues.
+
+Clean assessment data and readiness issue reports.
+
+Assessment Board Agent
+
+Creates assessment-board style views, including all assessments by date, same-day pressure, near-date pressure and feedback warnings.
+
+Assessment board CSV outputs.
+
+Programme-Cohort Mapping Agent
+
+Expands module assessment rows into affected programme-stage cohort exposure using the programme-module mapping.
+
+Affected cohort assessment rows and cohort-level pressure files.
+
+Deconfliction Case Builder Agent
+
+Builds APD-ready cases from cohort pressure outputs and calendar-rule checks.
+
+Main deconfliction cases, calendar warnings, feedback warnings and APD-specific packs.
+
+Validation Agent
+
+Verifies APD-facing outputs before release, including UK date format, blocked-date avoidance, release-date safety and stale APD routing files.
+
+Validation report for QA sign-off.
+
+Human APD / Module Owner Review
+
+Provides final academic judgement, confirms changes or justifications, and records agreed outcomes.
+
+Shared live deconfliction workbook and final QA-ready decisions.
+
+This design keeps the system agentic in workflow structure but controlled in authority: software agents detect, structure and validate issues; humans make and approve academic decisions.
+
+Core design principle
+
+The project follows a verifier-grounded multi-agent approach:
+
+Deterministic checks first
+Dates, rules, mappings and validation checks are handled using transparent rule-based code.
+
+Evidence before recommendation
+Every deconfliction case is generated from traceable input rows and includes a case ID, affected cohort, severity, rule trigger and evidence summary.
+
+Human approval required
+APDs and module owners remain responsible for final academic decisions. The system does not automatically alter submitted MAP records.
+
+Operational data is not committed
+Raw SharePoint exports, generated CSV outputs and shared Excel workbooks are excluded from GitHub.
+
+Workflow overview
+
 Raw MAP exports
     ↓
-Data Readiness Agent
+Agent 1: Data Readiness Agent
     ↓
-Assessment Board Agent
+Clean assessment data + readiness issues
     ↓
-Programme-Cohort Mapping Agent
+Agent 2: Assessment Board Agent
     ↓
-Deconfliction Case Builder Agent
+Assessment board pressure views
     ↓
-Validation Agent
+Agent 3: Programme-Cohort Mapping Agent
     ↓
-APD live review workbook
+Affected cohort assessment rows
+    ↓
+Agent 4: Deconfliction Case Builder Agent
+    ↓
+APD review packs + calendar warnings + feedback warnings
+    ↓
+Agent 5: Validation Agent
+    ↓
+Shared APD working workbook
+    ↓
+Human APD/module-owner review
     ↓
 Final QA check
     ↓
 EEECS Assessment Calendar preparation
-```
 
----
+Main agents and scripts
 
-## Main scripts
+The codebase implements the multi-agent workflow as separate scripts/components so that each stage can be run, inspected and validated independently.
 
-| Script | Purpose |
-|---|---|
-| `src/agents/data_readiness_agent/data_readiness_agent.py` | Performs core MAP data readiness checks. |
-| `src/agents/data_readiness_agent/create_assessment_board.py` | Creates assessment-board and pressure-summary outputs. |
-| `src/agents/programme_cohort_mapping_agent.py` | Expands assessments into affected programme-stage cohort rows. |
-| `src/agents/create_deconfliction_cases.py` | Builds APD-ready deconfliction and review outputs. |
-| `src/agents/validate_deconfliction_outputs.py` | Validates APD-facing outputs before sharing. |
-| `src/agents/inspect_deconfliction_cases.py` | Provides inspection summaries for manual QA review. |
+Script
 
----
+Purpose
 
-## Output types
+src/agents/data_readiness_agent/data_readiness_agent.py
 
-The workflow generates the following main output categories:
+Checks raw MAP exports for missing values, invalid dates, feedback timing issues and readiness problems.
 
-| Output | Purpose |
-|---|---|
-| `MAP_Deconfliction_Cases_Draft.csv` | Main same-day and near-date deconfliction cases. |
-| `MAP_Calendar_Rule_Warnings.csv` | Calendar-rule issues such as Independent Study Week, weekend, or QUB closure dates. |
-| `MAP_Feedback_Timing_Warnings.csv` | Feedback-return timing warnings. |
-| `MAP_Unmapped_Calendar_Modules.csv` | Calendar-included modules not mapped to normal programme-stage cohorts. |
-| `MAP_Assessment_Only_Manual_Cases.csv` | Assessment-only/manual review cases such as `CSC1034`. |
-| `MAP_APD_Review_Pack.csv` | Combined APD review evidence pack. |
-| `apd_review_packs/*.csv` | APD-specific review files. |
+src/agents/data_readiness_agent/create_assessment_board.py
 
-Generated outputs and operational workbooks should not be committed to GitHub.
+Creates assessment-board style outputs sorted by submission date, same-day pressure, near-date pressure and feedback warnings.
 
----
+src/agents/programme_cohort_mapping_agent.py
 
-## Severity model
+Expands assessment rows into programme-stage cohort exposure using the programme-module mapping file.
 
-| Severity | Meaning |
-|---|---|
-| Critical | Definite or very high-priority issue requiring immediate APD/module-owner review. |
-| High | Important workload or calendar issue requiring APD sense-check. |
-| Warning | Issue to review if time allows or where local judgement is needed. |
-| Exception | Approved or manually handled case outside normal rule logic. |
+src/agents/create_deconfliction_cases.py
 
----
+Builds APD-ready deconfliction cases, calendar-rule warnings, feedback warnings and APD-specific review packs.
 
-## Calendar and policy constraints
+src/agents/validate_deconfliction_outputs.py
 
-The system checks assessment dates against MAP-relevant calendar constraints, including:
+Validates APD-facing outputs, including UK date format, blocked-date avoidance, release-date safety and stale APD files.
 
-- Independent Study Weeks
-- weekends
-- QUB closure periods
-- formal assessment period restrictions for alternative coursework/class-test suggestions
-- feedback timing expectations
-- release-date safety for suggested alternatives
+src/agents/inspect_deconfliction_cases.py
 
-Suggested alternative dates are generated only as decision support. APDs and module owners remain responsible for final academic judgement.
+Provides summary inspection of deconfliction outputs for QA review.
 
----
+Key outputs
 
-## APD live deconfliction workflow
+Generated outputs are written under:
 
-For the 2026/27 MAP cycle, APDs use a shared live workbook in the Education folder:
+outputs/2026_27_readiness_03Sep/
 
-```text
+Key output groups include:
+
+programme_cohort_mapping/
+deconfliction_cases/
+deconfliction_cases/apd_review_packs/
+
+Important generated files include:
+
+Output file
+
+Purpose
+
+MAP_Deconfliction_Cases_Draft.csv
+
+Main date deconfliction cases.
+
+MAP_Calendar_Rule_Warnings.csv
+
+Independent Study Week, weekend and QUB closure warnings.
+
+MAP_Feedback_Timing_Warnings.csv
+
+Feedback timing warnings.
+
+MAP_Unmapped_Calendar_Modules.csv
+
+Calendar-included modules not currently mapped to normal programme-stage cohorts.
+
+MAP_Assessment_Only_Manual_Cases.csv
+
+Assessment-only/manual review cases, including CSC1034.
+
+MAP_APD_Review_Pack.csv
+
+Combined APD review file.
+
+apd_review_packs/*.csv
+
+APD-specific review packs.
+
+These files are generated operational outputs and should not normally be committed to GitHub.
+
+2026/27 APD deconfliction workflow
+
+For the 2026/27 MAP cycle, APDs review the generated outputs through a shared workbook in the Education folder:
+
 MAP_Assessment_Deconfliction_Working_2026_27_FIXED_UK_DATES.xlsx
-```
 
-APDs are asked to:
+The APD-facing process is:
 
-- open `Assessment_Plan_Working`
-- filter by `APD Owner`
-- review Critical, High and Calendar rule warning rows first
-- liaise with module owners where needed
-- record agreed outcomes in APD editable columns only
-- avoid overwriting original predicted dates
+Open the shared workbook.
 
-The shared workbook is an operational working file and should not be committed to GitHub.
+Use the Assessment_Plan_Working sheet.
 
----
+Filter or search by APD owner.
 
-## Data governance
+Prioritise Critical, High and Calendar rule warning rows.
 
-Do not commit:
+Liaise with module owners where required.
 
-```text
-data/raw/
-outputs/
-*.csv generated from MAP exports
-*.xlsx operational workbooks
-local debug files
-VS Code local settings
-```
+Record agreed outcomes in the APD editable columns only.
 
-The repository should contain source code, configuration, documentation, and reusable validation logic only.
+Do not overwrite original predicted MAP dates.
 
----
+Final QA review is completed before calendar release.
 
-## Current status
+Severity model
 
-As of 15 September 2026:
+Severity
 
-- v0.5 of `create_deconfliction_cases.py` is active.
-- APD-facing dates use UK format: `DD/MM/YYYY`.
-- Release-date-safe alternative suggestions are implemented.
-- Data Science APD routing is assigned to Dr Neil Anderson for this MAP review.
-- `CSC1034` is handled as an assessment-only/manual review case.
-- Validation confirmed:
-  - alternative dates before release date = 0
-  - blocked alternative date issues = 0
-  - stale Joseph APD files = 0
-  - APD-specific files created = 7
+Meaning
 
----
+Expected action
 
-## Research framing
+Critical
 
-Agentic MAP-QA demonstrates a practical, policy-constrained, verifier-grounded multi-agent system for academic quality assurance. It is designed to support transparent decision-making rather than replace human academic judgement.
+Definite or serious issue, such as same-day high-pressure clashes or QUB closure dates.
 
+Immediate APD/module-owner review.
+
+High
+
+Likely workload or calendar issue requiring APD sense-check.
+
+APD review and possible date adjustment.
+
+Warning
+
+Lower-risk issue, feedback timing warning, weekend date, or advisory case.
+
+Review if relevant; may be acceptable with justification.
+
+Exception
+
+Special case outside normal cohort deconfliction.
+
+Manual QA/APD review.
+
+Calendar rules
+
+The system checks assessment dates against known EEECS calendar constraints for 2026/27:
+
+Independent Study Weeks should normally avoid assessment submissions and class tests.
+
+QUB closure periods should not contain assessment submission dates.
+
+Weekends are flagged for review.
+
+Suggested alternative coursework/class-test dates avoid the formal assessment period.
+
+Suggested alternative dates also avoid dates before the relevant assessment release date.
+
+Current validation status
+
+The v0.5 APD deconfliction workflow has been validated with the following checks:
+
+Alternative dates before release date: 0
+Blocked alternative date issues: 0
+Stale Joseph APD files: 0
+APD-specific files created: 7
+
+The APD routing for Data Science is assigned to Dr Neil Anderson for this MAP review.
+
+CSC1034 is treated as an assessment-only/manual review case and is not included in normal Level 1 cohort deconfliction.
+
+Running the workflow
+
+Run scripts from the repository root.
+
+python src/agents/data_readiness_agent/data_readiness_agent.py
+python src/agents/data_readiness_agent/create_assessment_board.py
+python src/agents/programme_cohort_mapping_agent.py
+python src/agents/create_deconfliction_cases.py
+python src/agents/validate_deconfliction_outputs.py
+
+Alternatively, each script can be opened and run directly in VS Code.
+
+Repository structure
+
+agentic-map-qa/
+├── configs/
+│   ├── column_mapping.yaml
+│   ├── paths.yaml
+│   └── readiness_rules.yaml
+├── data/
+│   └── raw/                  # ignored by Git
+├── docs/
+│   └── MAP_Implementation_Log.md
+├── outputs/                  # ignored by Git
+├── src/
+│   └── agents/
+│       ├── create_deconfliction_cases.py
+│       ├── inspect_deconfliction_cases.py
+│       ├── programme_cohort_mapping_agent.py
+│       ├── validate_deconfliction_outputs.py
+│       └── data_readiness_agent/
+│           ├── create_assessment_board.py
+│           └── data_readiness_agent.py
+└── README.md
+
+Data governance
+
+The following should not be committed to GitHub:
+
+raw SharePoint / MAP exports;
+
+generated output CSV files;
+
+APD-specific review CSVs;
+
+shared Excel working files;
+
+files containing live operational decisions or staff comments.
+
+Only source code, configuration files and documentation should be committed.
+
+Status
+
+This repository currently supports the 2026/27 EEECS MAP QA and assessment deconfliction workflow using a staged, verifier-grounded multi-agent architecture. The system is under active development and is intended to support transparent, auditable, policy-constrained assessment planning.
