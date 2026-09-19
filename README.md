@@ -356,3 +356,14 @@ Only source code, configuration files and documentation should be committed.
 Status
 
 This repository currently supports the 2026/27 EEECS MAP QA and assessment deconfliction workflow using a staged, verifier-grounded multi-agent architecture. The system is under active development and is intended to support transparent, auditable, policy-constrained assessment planning.
+
+### Original assessment calendar agent
+
+The repository also includes:
+
+```text
+src/agents/original_assessment_calendar_agent.py
+src/agents/validate_original_assessment_calendar.py
+```
+
+This agent generates a static HTML calendar of the original MAP-submitted non-exam assessment dates. It provides a baseline view before APD deconfliction changes are applied and can be compared with the APD scenario calendar.
