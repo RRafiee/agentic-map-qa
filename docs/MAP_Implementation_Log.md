@@ -51,3 +51,13 @@ For the current version, such cases will be handled through APD and module-owner
 - APDs were asked to filter `Assessment_Plan_Working` by APD Owner and review Critical, High and Calendar rule warning rows first.
 - APDs should record agreed outcomes in the APD editable columns only, without overwriting the original predicted dates.
 - APD deadline: Thursday 18 September before noon, to allow final QA checks and EEECS Calendar release in the afternoon.
+
+## 20 September 2026 – Programme-Module Mapping Fallback for Calendar Visualisation Agents
+
+Updated both calendar visualisation agents to use the programme-module mapping file as a fallback when `Programme Stage Key(s)` is blank in the APD working workbook.
+
+This resolved missing-module issues in the visual calendars, including ECS1001 not appearing under EEE/CE Stage 1. The corrected Original Assessment Calendar now shows ECS1001 under EEE/CE Stage 1 and CSC2059 under EEE/CE Stage 2.
+
+The Current APD Scenario Calendar Visual Check Agent was also updated with the same fallback logic, ensuring consistency between the original baseline calendar and the current APD scenario calendar.
+
+Updated validators now check targeted modules including ECS1001, CSC2059 and ELE3045, confirm that APD-related fields are excluded from the Original Assessment Calendar, and report remaining unmapped/manual-check modules explicitly rather than silently hiding them.

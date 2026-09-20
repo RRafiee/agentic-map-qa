@@ -15,6 +15,7 @@ DEFAULT_INPUT = Path(
     "MAP_Assessment_Deconfliction_Working_2026_27_FIXED_UK_DATES.xlsx"
 )
 DEFAULT_OUTPUT_DIR = Path("outputs/2026_27_readiness_03Sep/calendar_visual_check")
+DEFAULT_MAPPING_INPUT = Path("data/raw/2026_27_snapshot_03Sep/programme_module_mapping_raw.csv")
 SHEET_NAME = "Assessment_Plan_Working"
 
 EVENT_TYPES = ["Release", "Submission", "Feedback"]
@@ -161,7 +162,59 @@ def combine_unique(values: list[Any]) -> str:
     return "; ".join(seen)
 
 
-def build_events(df: pd.DataFrame) -> list[dict[str, Any]]:
+def is_truthy_value(value: Any) -> bool:
+    value = clean_text(value).lower()
+    return value in {"true", "yes", "1", "y"}
+
+
+def load_programme_mapping(mapping_path: Path) -> dict[str, list[str]]:
+    """Load module -> cohort-stage keys from the programme-module mapping file.
+
+    This is used as a fallback when the APD working workbook has a blank
+    Programme Stage Key(s) value. The fallback prevents normal, unflagged
+    assessments from disappearing from the current scenario visualisation.
+    """
+    if not mapping_path.exists():
+        print(f"Programme-module mapping fallback file not found: {mapping_path}")
+        return {}
+
+    mapping_df = pd.read_csv(mapping_path, dtype=str).fillna("")
+    mapping_df.columns = [normalise_header(c) for c in mapping_df.columns]
+
+    module_col = find_col(mapping_df, ["Module Code", "ModuleCode", "Module"], required=True)
+    cohort_col = find_col(mapping_df, ["Cohort Key", "Programme Stage Key", "Programme Stage"], required=True)
+    include_col = find_col(mapping_df, ["Include in Deconfliction", "Include", "Active"] )
+    active_col = find_col(mapping_df, ["Active"] )
+
+    mapping: dict[str, list[str]] = defaultdict(list)
+    for _, row in mapping_df.iterrows():
+        module_code = get_value(row, module_col).upper()
+        cohort_key = get_value(row, cohort_col)
+        if not module_code or not cohort_key:
+            continue
+        if active_col and not is_truthy_value(get_value(row, active_col)):
+            continue
+        if include_col and include_col != active_col and not is_truthy_value(get_value(row, include_col)):
+            continue
+        if cohort_key not in mapping[module_code]:
+            mapping[module_code].append(cohort_key)
+
+    print(f"Programme-module mapping fallback file: {mapping_path}")
+    print(f"Programme-module mapping fallback modules loaded: {len(mapping)}")
+    return dict(mapping)
+
+
+def programme_keys_for_row(row: pd.Series, cols: dict[str, str | None], module_code: str, mapping_by_module: dict[str, list[str]]) -> tuple[list[str], str]:
+    workbook_value = get_value(row, cols.get("programme_stage"))
+    if workbook_value:
+        return split_stage_keys(workbook_value), "Workbook Programme Stage Key(s)"
+    fallback_keys = mapping_by_module.get(module_code.upper(), [])
+    if fallback_keys:
+        return fallback_keys, "Programme-module mapping fallback"
+    return ["Unmapped"], "Unmapped"
+
+
+def build_events(df: pd.DataFrame, mapping_by_module: dict[str, list[str]]) -> list[dict[str, Any]]:
     cols = {
         "academic_year": find_col(df, ["Academic Year"]),
         "module_code": find_col(df, ["Module Code", "ModuleCode", "Module"], required=True),
@@ -173,6 +226,7 @@ def build_events(df: pd.DataFrame) -> list[dict[str, Any]]:
         "assessment_weight": find_col(df, ["Assessment Weight", "Weight"]),
         "assessment_period": find_col(df, ["Assessment Period", "Period"]),
         "include_calendar": find_col(df, ["Include in EEECS Calendar", "Include in Calendar"]),
+        "formal_exam": find_col(df, ["Is Formal Examination", "Formal Examination", "Is Formal Exam"]),
         "original_release": find_col(df, ["Predicted Release Date", "Original Predicted Release Date", "Original Release Date"], required=True),
         "original_submission": find_col(df, ["Predicted Submission Date", "Original Predicted Submission Date", "Original Submission Date"], required=True),
         "original_feedback": find_col(df, ["Predicted Feedback Date", "Original Predicted Feedback Date", "Original Feedback Date"], required=True),
@@ -201,6 +255,8 @@ def build_events(df: pd.DataFrame) -> list[dict[str, Any]]:
     for idx, row in df.iterrows():
         if not is_truthy_calendar_flag(get_value(row, cols["include_calendar"])):
             continue
+        if is_truthy_value(get_value(row, cols["formal_exam"])):
+            continue
 
         original_dates = {
             "Release": parse_date(get_value(row, cols["original_release"])),
@@ -216,7 +272,7 @@ def build_events(df: pd.DataFrame) -> list[dict[str, Any]]:
         module_code = get_value(row, cols["module_code"]).upper()
         assessment_code = get_value(row, cols["assessment_code"])
         decision = get_value(row, cols["decision"])
-        programme_keys = split_stage_keys(get_value(row, cols["programme_stage"]))
+        programme_keys, programme_stage_source = programme_keys_for_row(row, cols, module_code, mapping_by_module)
 
         for programme_stage_key in programme_keys:
             area = area_from_key(programme_stage_key)
@@ -245,6 +301,7 @@ def build_events(df: pd.DataFrame) -> list[dict[str, Any]]:
                             "area": area,
                             "stage": stage,
                             "programme_stage_key": programme_stage_key,
+                            "programme_stage_source": programme_stage_source,
                             "academic_year": get_value(row, cols["academic_year"]),
                             "module_code": module_code,
                             "module_title": get_value(row, cols["module_title"]),
@@ -582,7 +639,8 @@ hr { border: none; border-top: 1px solid #e5e7eb; margin: 28px 0; }
 <h1>MAP Calendar Visual Check — Static Interim APD Scenario</h1>
 <div class="small">Generated: {html.escape(generated)}</div>
 <div class="note">
-  <strong>Important:</strong> This is an interim visual checking view generated from the current APD working workbook. It shows the current APD scenario: APD proposed dates where entered, otherwise original submitted MAP dates. It is not the final EEECS assessment calendar.
+  <strong>Important:</strong> This is an interim visual checking view generated from the current APD working workbook. It shows the current APD scenario: APD proposed dates where entered, otherwise original submitted MAP dates. It is not the final EEECS assessment calendar.<br>
+  Programme-stage views use the workbook Programme Stage Key(s) where present, and the programme-module mapping fallback where the workbook field is blank.
 </div>
 <div class="legend">
   <span class="pill">[R] Release</span>
@@ -615,6 +673,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Create static interim MAP calendar visual check HTML.")
     parser.add_argument("--input", type=Path, default=DEFAULT_INPUT, help="Path to latest APD working workbook")
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR, help="Output folder")
+    parser.add_argument("--mapping-input", type=Path, default=DEFAULT_MAPPING_INPUT, help="Programme-module mapping CSV used as fallback for blank Programme Stage Key(s)")
     args = parser.parse_args()
 
     input_path = args.input
@@ -625,8 +684,9 @@ def main() -> None:
 
     df = pd.read_excel(input_path, sheet_name=SHEET_NAME, dtype=str)
     df.columns = [normalise_header(c) for c in df.columns]
+    mapping_by_module = load_programme_mapping(args.mapping_input)
 
-    events = build_events(df)
+    events = build_events(df, mapping_by_module)
     events_df = pd.DataFrame(events)
     summary_df = make_summary_table(events)
     changed_df = make_changed_dates_table(events)
@@ -656,7 +716,14 @@ def main() -> None:
         print(f"  Same-day submission pressure markers: {(submissions['same_day_submission_pressure'] == 'Yes').sum()}")
         print(f"  Near-date submission pressure markers: {(submissions['near_date_submission_pressure'] == 'Yes').sum()}")
         print(f"  APD proposed submission events: {(submissions['date_source'] == 'APD proposed date').sum()}")
-    print("\nNote: v0.3 is static HTML with no dropdown menus. It should open reliably in a browser.")
+    if not events_df.empty and "programme_stage_source" in events_df.columns:
+        print("  Programme/stage mapping sources:")
+        for source, count in events_df["programme_stage_source"].value_counts().items():
+            print(f"    {source}: {count}")
+        unmapped_modules = sorted(events_df.loc[events_df["programme_stage_source"] == "Unmapped", "module_code"].dropna().unique())
+        if unmapped_modules:
+            print(f"  Unmapped module codes after fallback: {', '.join(unmapped_modules)}")
+    print("\nNote: v0.4 is static HTML with programme-module mapping fallback for blank Programme Stage Key(s).")
 
 
 if __name__ == "__main__":
