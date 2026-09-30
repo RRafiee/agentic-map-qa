@@ -17,9 +17,35 @@
 
 This repository contains the working implementation of the MAP Agentic QA system developed for the School of Electronics, Electrical Engineering and Computer Science (EEECS), Queen’s University Belfast.
 
-The system supports the 2026/27 Module Assessment Planning (MAP) process through a multi-agent workflow that combines deterministic data validation, programme-cohort mapping, assessment deconfliction, calendar-rule checking, validation, calendar visualisation and APD-ready review outputs.
+The system supports the 2026/27 Module Assessment Planning (MAP) process through a multi-agent workflow that combines deterministic data validation, programme-cohort mapping, assessment deconfliction, calendar-rule checking, validation, calendar visualisation, APD-ready review outputs and final compact calendar preparation.
 
 The system is designed as a human-in-the-loop, verifier-grounded multi-agent QA workflow. It does not approve, publish or change assessment dates automatically. Instead, each agent performs a clearly bounded QA task, produces traceable evidence, and supports APDs and module owners in making the final academic decisions.
+
+## Approved EEECS Assessment Calendar 2026/27
+
+The repository now supports the generation of a compact, standalone HTML output for the approved EEECS non-exam-based assessment calendar for 2026/27.
+
+The final compact calendar can be copied to:
+
+```text
+docs/index.html
+```
+
+This allows the approved calendar to be served as the GitHub Pages landing page for the repository.
+
+The approved compact calendar:
+
+- reflects APD-agreed assessment dates where applicable;
+- falls back to original submitted dates where no APD update was entered;
+- excludes modules outside the EEECS final calendar scope, including `ELE3030` and `MEE1008`;
+- supports programme/stage filtering, module selection, event-type filtering and detailed event inspection;
+- is a static standalone HTML file with embedded data and no backend dependency.
+
+Calendar notice used in the approved compact HTML:
+
+```text
+Approved EEECS QA assessment calendar 2026/27. Calendar version: 1.0 · Approval date: 29 September 2026. This calendar reflects the approved assessment dates for EEECS modules, including APD-agreed updates where applicable. For any queries or corrections, please contact Dr Reza Rafiee at g.rafiee@qub.ac.uk.
+```
 
 ## Purpose
 
@@ -34,7 +60,7 @@ The MAP Agentic QA system helps identify and manage assessment-planning issues b
 - validation of suggested alternative dates;
 - visualisation of original MAP-submitted assessment dates;
 - visualisation of the current APD scenario using APD-proposed dates where entered;
-- preparation for final EEECS Assessment Calendar release;
+- preparation of the approved compact EEECS assessment calendar;
 - a staged multi-agent workflow with clear hand-off points between agents.
 
 ## Multi-agent system architecture
@@ -50,13 +76,15 @@ The project is organised as a multi-agent system, where each agent has a bounded
 | Validation Agent | Verifies APD-facing outputs before release, including UK date format, blocked-date avoidance, release-date safety and stale APD routing files. | Validation report for QA sign-off. |
 | Original Assessment Calendar Agent | Generates a static HTML calendar of the original MAP-submitted non-exam assessment dates only. | Baseline original assessment calendar and summary files. |
 | Calendar Visual Check Agent | Generates a static HTML visual checker for the current APD scenario, applying APD-proposed dates where entered. | APD scenario calendar, event file and summary files. |
+| Compact Calendar HTML Agent | Generates the final compact standalone approved calendar HTML from the validated event-level calendar output. | Compact approved HTML calendar. |
+| Calendar Pipeline Agent | Runs the final calendar workflow as a single command: visualisation, validation and compact HTML generation. | Reproducible final calendar pipeline. |
 | Human APD / Module Owner Review | Provides final academic judgement, confirms changes or justifications, and records agreed outcomes. | Shared live deconfliction workbook and final QA-ready decisions. |
 
 This design keeps the system agentic in workflow structure but controlled in authority: software agents detect, structure and validate issues; humans make and approve academic decisions.
 
 ## Core design principle
 
-The project follows a verifier-grounded multi-agent approach:
+The project follows a verifier-grounded multi-agent approach.
 
 ### Deterministic checks first
 
@@ -72,7 +100,11 @@ APDs and module owners remain responsible for final academic decisions. The syst
 
 ### Operational data is not committed
 
-Raw SharePoint exports, generated CSV outputs and shared Excel workbooks are excluded from GitHub.
+Raw SharePoint exports, generated CSV outputs and shared Excel workbooks are excluded from GitHub. The only generated HTML exception is the approved compact publication copy at:
+
+```text
+docs/index.html
+```
 
 ## Workflow overview
 
@@ -111,10 +143,14 @@ Current APD scenario calendar using APD-proposed dates where entered
     ↓
 Final QA check
     ↓
-EEECS Assessment Calendar preparation
+Agent 8: Compact Calendar HTML Agent
+    ↓
+Approved compact EEECS assessment calendar
+    ↓
+Optional publication copy at docs/index.html
 ```
 
-The original assessment calendar is generated before the APD review stage so that APDs can view the original module-owner submitted assessment pattern alongside the APD working workbook. The calendar visual check agent then provides the current APD scenario view after APDs begin entering proposed changes.
+The original assessment calendar is generated before the APD review stage so that APDs can view the original module-owner submitted assessment pattern alongside the APD working workbook. The calendar visual check agent then provides the current APD scenario view after APDs begin entering proposed changes. The compact calendar HTML agent prepares the final static calendar output once the relevant QA review and APD deconfliction steps are complete.
 
 ## Main agents and scripts
 
@@ -131,10 +167,13 @@ The codebase implements the multi-agent workflow as separate scripts/components 
 | `src/agents/original_assessment_calendar_agent.py` | Generates a static HTML calendar of the original MAP-submitted non-exam assessment dates only. This provides a baseline view before APD deconfliction changes are applied. |
 | `src/agents/validate_original_assessment_calendar.py` | Validates the original assessment calendar output, checking date parsing, exam exclusion, APD-field exclusion, APD wording exclusion and programme/stage separation. |
 | `src/agents/calendar_visualisation_agent.py` | Generates a static HTML visual checker for the current APD scenario. It applies APD-proposed dates where entered and otherwise retains the original MAP-submitted dates. |
+| `src/agents/compact_calendar_html_agent.py` | Generates the compact standalone approved calendar HTML from the validated event-level calendar output. Supports explicit module exclusions such as `ELE3030` and `MEE1008`. |
+| `src/agents/run_calendar_pipeline_agent.py` | Runs the final calendar pipeline as a single command: visualisation, validation and compact HTML generation. |
+| `src/agents/validate_static_calendar_output.py` | Validates the generated static/compact calendar output before publication. |
 
 ## Key outputs
 
-Generated outputs are written under:
+Generated operational outputs are written under:
 
 ```text
 outputs/2026_27_readiness_03Sep/
@@ -158,7 +197,7 @@ Important generated files include:
 | `MAP_Calendar_Rule_Warnings.csv` | Independent Study Week, weekend and QUB closure warnings. |
 | `MAP_Feedback_Timing_Warnings.csv` | Feedback timing warnings. |
 | `MAP_Unmapped_Calendar_Modules.csv` | Calendar-included modules not currently mapped to normal programme-stage cohorts. |
-| `MAP_Assessment_Only_Manual_Cases.csv` | Assessment-only/manual review cases, including CSC1034. |
+| `MAP_Assessment_Only_Manual_Cases.csv` | Assessment-only/manual review cases, including special/manual cases. |
 | `MAP_APD_Review_Pack.csv` | Combined APD review file. |
 | `apd_review_packs/*.csv` | APD-specific review packs. |
 | `MAP_Original_Assessment_Calendar_2026_27.html` | Static HTML calendar of the original MAP-submitted non-exam assessment dates. |
@@ -167,12 +206,18 @@ Important generated files include:
 | `MAP_Calendar_Visual_Check_2026_27.html` | Static HTML visual checker for the current APD scenario. |
 | `MAP_Calendar_Visual_Check_Events.csv` | Event-level export for the APD scenario calendar. |
 | `MAP_Calendar_Visual_Check_Summary_By_Area_Stage.csv` | Area/stage summary for the APD scenario calendar. |
+| `MAP_Calendar_2026_27.html` | Compact approved standalone EEECS assessment calendar. |
+| `docs/index.html` | Optional GitHub Pages publication copy of the compact approved calendar. |
 
-These files are generated operational outputs and should not normally be committed to GitHub.
+Generated operational files are not normally committed to GitHub. The approved compact publication copy may be committed only as:
+
+```text
+docs/index.html
+```
 
 ## 2026/27 APD deconfliction workflow
 
-For the 2026/27 MAP cycle, APDs review the generated outputs through a shared workbook in the Education folder:
+For the 2026/27 MAP cycle, APDs review the generated outputs through a shared working workbook in the Education folder:
 
 ```text
 MAP_Assessment_Deconfliction_Working_2026_27_FIXED_UK_DATES.xlsx
@@ -189,6 +234,7 @@ The APD-facing process is:
 7. Record agreed outcomes in the APD editable columns only.
 8. Do not overwrite original predicted MAP dates.
 9. Complete final QA review before calendar release.
+10. Generate the compact approved calendar output using the final calendar pipeline.
 
 ## Original assessment calendar agent
 
@@ -213,7 +259,7 @@ The validator checks that:
 
 ## Calendar visual check agent
 
-The repository also includes:
+The repository includes:
 
 ```text
 src/agents/calendar_visualisation_agent.py
@@ -221,7 +267,74 @@ src/agents/calendar_visualisation_agent.py
 
 This agent generates a static HTML visual checker for the current APD scenario. It applies APD-proposed dates where these have already been entered; otherwise, it retains the original MAP-submitted dates.
 
-The output is an interim visual aid and is not the final EEECS assessment calendar. It helps APDs and the Director of Education sense-check whether proposed date changes improve the assessment spread or create new same-day or near-date pressure points.
+The APD scenario calendar is used to sense-check whether proposed date changes improve the assessment spread or create new same-day or near-date pressure points before the compact final calendar is generated.
+
+## Final compact calendar pipeline
+
+The repository includes:
+
+```text
+src/agents/compact_calendar_html_agent.py
+src/agents/run_calendar_pipeline_agent.py
+src/agents/validate_static_calendar_output.py
+```
+
+The final calendar workflow can be run through a one-command pipeline:
+
+```powershell
+.\.venv\Scripts\python.exe src\agents\run_calendar_pipeline_agent.py --exclude-module ELE3030 --exclude-module MEE1008 --open
+```
+
+This pipeline:
+
+1. regenerates the current APD scenario calendar data;
+2. validates the event-level output;
+3. generates the compact standalone HTML calendar;
+4. applies explicit module exclusions for modules outside the EEECS final calendar scope;
+5. opens the approved compact calendar locally when `--open` is used.
+
+The compact output is intended for final QA review and publication once the underlying MAP records and APD decisions have been approved.
+
+## Module exclusions for final EEECS calendar
+
+The final EEECS calendar excludes modules outside the EEECS calendar scope.
+
+Current explicit exclusions:
+
+| Module code | Module title / note | Reason |
+|---|---|---|
+| `ELE3030` | Avionic Systems | Programme corrected to `Other`; excluded from EEECS final calendar. |
+| `MEE1008` | Module outside EEE/CE final calendar scope | Programme corrected to `Other`; excluded from EEECS final calendar. |
+
+Recommended final pipeline command:
+
+```powershell
+.\.venv\Scripts\python.exe src\agents\run_calendar_pipeline_agent.py --exclude-module ELE3030 --exclude-module MEE1008 --open
+```
+
+## GitHub Pages output
+
+For publication through GitHub Pages, the final approved compact calendar can be copied to:
+
+```text
+docs/index.html
+```
+
+Recommended command:
+
+```powershell
+New-Item -ItemType Directory -Force docs
+Copy-Item outputs\2026_27_readiness_03Sep\calendar_visual_check\MAP_Calendar_2026_27.html docs\index.html -Force
+```
+
+GitHub Pages can then be configured to serve from:
+
+```text
+Branch: main
+Folder: /docs
+```
+
+Only the approved compact HTML output should be placed in `docs/index.html`. Raw SharePoint exports, working Excel files, APD review CSVs and generated operational CSVs should remain excluded from GitHub.
 
 ## Severity model
 
@@ -248,23 +361,21 @@ The v0.5 APD deconfliction workflow has been validated with the following checks
 
 - Alternative dates before release date: 0
 - Blocked alternative date issues: 0
-- Stale Joseph APD files: 0
+- Stale APD routing files: 0
 - APD-specific files created: 7
 
 The original assessment calendar validator has also confirmed:
 
-- 741 calendar event rows;
-- 247 release events;
-- 247 submission events;
-- 247 feedback events;
-- 0 invalid dates;
-- 0 exam-like assessment rows;
-- no APD-related columns;
-- no APD-proposed wording in the HTML.
+- event-level calendar rows are generated;
+- release, submission and feedback events are separated;
+- invalid dates are detected and reported;
+- formal-exam rows are excluded;
+- APD-related fields are excluded from the original calendar output;
+- programme/stage labels are clear.
 
 The APD routing for Data Science is assigned to Dr Neil Anderson for this MAP review.
 
-CSC1034 is treated as an assessment-only/manual review case and is not included in normal Level 1 cohort deconfliction.
+CSC1034 is treated as a manual/special case where required and should be checked carefully in final calendar outputs.
 
 ## Running the workflow
 
@@ -283,6 +394,12 @@ On Windows, using the local virtual environment:
 .\.venv\Scripts\python.exe src\agents\calendar_visualisation_agent.py
 ```
 
+For the final compact calendar output, use:
+
+```powershell
+.\.venv\Scripts\python.exe src\agents\run_calendar_pipeline_agent.py --exclude-module ELE3030 --exclude-module MEE1008 --open
+```
+
 Alternatively, if the correct Python environment is already active:
 
 ```powershell
@@ -294,6 +411,7 @@ python src\agents\validate_deconfliction_outputs.py
 python src\agents\original_assessment_calendar_agent.py
 python src\agents\validate_original_assessment_calendar.py
 python src\agents\calendar_visualisation_agent.py
+python src\agents\run_calendar_pipeline_agent.py --exclude-module ELE3030 --exclude-module MEE1008 --open
 ```
 
 ## Repository structure
@@ -309,6 +427,7 @@ agentic-map-qa/
 ├── docs/
 │   ├── assets/
 │   │   └── map_qa_multi_agent_architecture.png
+│   ├── index.html            # approved compact calendar for GitHub Pages, if published
 │   ├── calendar_visual_check_agent.md
 │   ├── MAP_Implementation_Log.md
 │   └── original_assessment_calendar_agent.md
@@ -316,12 +435,15 @@ agentic-map-qa/
 ├── src/
 │   └── agents/
 │       ├── calendar_visualisation_agent.py
+│       ├── compact_calendar_html_agent.py
 │       ├── create_deconfliction_cases.py
 │       ├── inspect_deconfliction_cases.py
 │       ├── original_assessment_calendar_agent.py
 │       ├── programme_cohort_mapping_agent.py
+│       ├── run_calendar_pipeline_agent.py
 │       ├── validate_deconfliction_outputs.py
 │       ├── validate_original_assessment_calendar.py
+│       ├── validate_static_calendar_output.py
 │       └── data_readiness_agent/
 │           ├── create_assessment_board.py
 │           └── data_readiness_agent.py
@@ -334,13 +456,15 @@ The following should not be committed to GitHub:
 
 - raw SharePoint / MAP exports;
 - generated output CSV files;
-- generated HTML calendar files;
+- generated HTML calendar files, except the approved compact publication copy at `docs/index.html`;
 - APD-specific review CSVs;
 - shared Excel working files;
 - files containing live operational decisions or staff comments.
 
-Only source code, configuration files, documentation and non-sensitive architecture assets should be committed.
+Only source code, configuration files, documentation, non-sensitive architecture assets and the approved compact publication HTML at `docs/index.html` should be committed.
 
 ## Status
 
-This repository currently supports the 2026/27 EEECS MAP QA and assessment deconfliction workflow using a staged, verifier-grounded multi-agent architecture. The system is under active development and is intended to support transparent, auditable, policy-constrained assessment planning.
+This repository currently supports the 2026/27 EEECS MAP QA and assessment deconfliction workflow using a staged, verifier-grounded multi-agent architecture.
+
+The workflow has progressed from data-readiness checking and APD deconfliction support to final compact calendar preparation. The system remains human-in-the-loop: it supports transparent, auditable, policy-constrained assessment planning, but academic decisions and publication decisions remain with the relevant EEECS academic leads and APDs.
